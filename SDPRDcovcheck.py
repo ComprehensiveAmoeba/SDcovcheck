@@ -48,10 +48,14 @@ def process_files(targets_file, bulk_file, add_tags):
     filtered_bulk_with_source = filtered_bulk_with_source.drop_duplicates()
 
     if add_tags:
-        filtered_bulk_with_source.loc[filtered_bulk_with_source['Entity'] == 'Campaign', 'Entity'] = 'update'
+        filtered_bulk_with_source.loc[filtered_bulk_with_source['Entity'] == 'Campaign', 'Operation'] = 'update'
         filtered_bulk_with_source.loc[filtered_bulk_with_source['Entity'] == 'Campaign', 'Campaign Name'] = filtered_bulk_with_source.apply(
-            lambda row: re.sub(r'^SD_', f"SD_{row['Source Tab']}_", row['Campaign Name']) if row['Entity'] == 'update' else row['Campaign Name'], axis=1
-        )
+            lambda row: f"SD_{row['Source Tab']}_{row['Campaign Name']}" 
+            if row['Entity'] == 'Campaign' and isinstance(row['Campaign Name'], str) and row['Campaign Name'].startswith("SD_") 
+            else row['Campaign Name'], 
+            axis=1
+)
+
 
     missing_combinations = target_combinations.merge(
         bulk_data[['Ad ASIN', 'Target ASIN']],
